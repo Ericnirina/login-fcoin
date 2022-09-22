@@ -2,8 +2,12 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import {useSession,signIn,signOut} from "next-auth/react";
 import { GoogleAuthProvider } from "firebase/auth";
+import styled from 'styled-components';
+
 
 import { GoogleLogin } from 'react-google-login';
+import FacebookLogin from 'react-facebook-login';
+
 import {
   MDBContainer,
   MDBCol,
@@ -22,7 +26,22 @@ import TextField from '@mui/material/TextField';
 import { initializeApp } from "firebase/app";
 
 function App() {
+    const BtnFacebook = styled.button`
+    width: 165px;
+    height:35px;  
+    border-radius: 4px;
+    background: #3b5998;
+    color:white;
+    border:0px transparent;  
+    text-align: center;
+    margin:5px;
+    display: inline-block;
 
+    &:hover{
+        background: #3b5998;
+        opacity: 0.6;
+    }
+`;
     const firebaseConfig = {
         apiKey: "AIzaSyBjtPRfRzN5htkcizG795gLtYLLhnLzqxM",
         authDomain: "flogin-ff476.firebaseapp.com",
@@ -44,6 +63,7 @@ function App() {
         
         switch (type) {
         case 'facebook':
+            console.log(response)
           fullname = (response.name).split(' ');
           input = {
             email: response.email,
@@ -154,19 +174,23 @@ function App() {
 
                 <br/><br/>
 
-                <Button 
-                    style={{
-                        borderRadius: 35,
-                        backgroundColor:"#1f80b3"
-                    }}
-                    fullWidth 
-                    variant="contained" 
-                    color="primary" 
-                    type="submit" 
-                    
-                > 
-                    <img className="mx-2" src="https://cdn-icons-png.flaticon.com/512/124/124010.png" style={{width:20,backgroundColor:'white',borderRadius:50}} alt="Facebook image" />Se connecter avec facebook
-                </Button> 
+                    <FacebookLogin
+                        appId={'827782618658221'}
+                        callback={(response) =>
+                                handleResponseLogin(response, 'facebook')
+                        }
+                        style={{
+                            width: '100%',
+                            borderRadius: 35,
+                            backgroundColor:"#1f80b3",
+                            color:'white',
+                            marginBottom: 4,
+                        }}
+                        
+                    >
+    
+                    </FacebookLogin>
+
 
                 <br/><br/>
                 <Link href="api/hello">
