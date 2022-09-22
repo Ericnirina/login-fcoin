@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
-import {useSession,signIn,signOut} from "next-auth/react"
+import {useSession,signIn,signOut} from "next-auth/react";
+import { GoogleAuthProvider } from "firebase/auth";
+
+import { GoogleLogin } from 'react-google-login';
 import {
   MDBContainer,
   MDBCol,
@@ -17,25 +20,94 @@ import {
 import TextField from '@mui/material/TextField';
 
 import { initializeApp } from "firebase/app";
-import { getAnalytics } from "firebase/analytics";
 
 function App() {
+
     const firebaseConfig = {
-        apiKey: "AIzaSyDcg95HwW9HTWD30oL2nM8VmuZwikEPxmE",
-        authDomain: "fcoin-login.firebaseapp.com",
-        projectId: "fcoin-login",
-        storageBucket: "fcoin-login.appspot.com",
-        messagingSenderId: "959411497554",
-        appId: "1:959411497554:web:f8a315f7a0ec7d4d83cd8b",
-        measurementId: "G-YTFX5CJ8JC"
+        apiKey: "AIzaSyBjtPRfRzN5htkcizG795gLtYLLhnLzqxM",
+        authDomain: "flogin-ff476.firebaseapp.com",
+        projectId: "flogin-ff476",
+        storageBucket: "flogin-ff476.appspot.com",
+        messagingSenderId: "521039714360",
+        appId: "1:521039714360:web:9457f256c3f47648036ecd"
       };
       
       // Initialize Firebase
-      const app = initializeApp(firebaseConfig);
-
+    const app = initializeApp(firebaseConfig);
+    const provider = new GoogleAuthProvider();
       async function handleGoogleSignin() {         
         //signIn('google',{callbackUrl:"http://localhost:3000/"})
       }
+    const  handleResponseLogin = async (response, type) => {
+        let input = null;
+        let fullname = '';
+        
+        switch (type) {
+        case 'facebook':
+          fullname = (response.name).split(' ');
+          input = {
+            email: response.email,
+            firstname: fullname.length > 0?fullname[1].toLowerCase():fullname[0].toLowerCase(),
+            lastname: fullname.length > 0?fullname[0].toUpperCase():'',
+            password: response.userID,
+            confirmPassword: response.userID,
+            provider_name: 'facebook',
+            oauth_uid: response.userID,
+            oauth_access_token: response.accessToken,
+            create_methode: 'account_connectwith'
+          };
+          break;
+        case 'google':
+          input = {
+            email: response.profileObj.email,
+            firstname: response.profileObj.givenName.toLowerCase(),
+            lastname: response.profileObj.familyName.toUpperCase(),
+            password: response.profileObj.googleId,
+            confirmPassword: response.profileObj.googleId,
+            provider_name: 'google',
+            oauth_uid: response.profileObj.googleId,
+            oauth_access_token: response.accessToken,
+            create_methode: 'account_connectwith'
+          };
+          break;
+        case 'register':
+          input = {
+            email: response.email,
+            firstname: response.firstname.toLowerCase(),
+            lastname: response.lastname.toUpperCase(),
+            password: response.password,
+            confirmPassword: response.confirmPassword,
+            provider_name: null,
+            oauth_uid: null,
+            oauth_access_token: null,
+            base_url_website: ENV.host,
+            create_methode: 'account_register'
+          };
+          break;
+        default:
+          break;
+        }
+    
+    
+        const res = await newUser({ ...input, tz: locationUser?.time_zone ? locationUser?.time_zone.id : timezone['Europe/Paris'] });
+    
+        if (res?.partner_id) {
+          setLoading(false);
+          swal({ 
+            title: 'Super!', 
+            text: 'Il reste une dernière étape pour valider votre compte. Un email vous a été envoyé. Merci de valider le lien dans celui-ci', 
+            icon: 'success', 
+            className: 'swal' 
+          }).then((value) => {
+            if (value) {
+              router.push('/');
+            }
+          });
+        } else {
+          swal({ title: 'Attention!', text: res?.error?res.error:'Cette email possède déjà un compte', icon: 'warning', className: 'swal' });
+          setLoading(false);
+        }
+      };
   return (
     <MDBContainer fluid className="p-3 my-5">
 
@@ -46,26 +118,39 @@ function App() {
             <MDBCol col='3' sm='4'>
 
                 <div className='d-flex flex-row mt-2'>
-                    <img className="mx-2" src="https://raw.githubusercontent.com/FcoinCrypto/Fcoin/main/logo/1024x1024fcoin.png" style={{width:60,backgroundColor:'white',borderRadius:50}} alt="Facebook image" />
+                    <img className="mx-2 " src="https://raw.githubusercontent.com/FcoinCrypto/Fcoin/main/logo/1024x1024fcoin.png" style={{width:60,backgroundColor:'white',borderRadius:50}} alt="Facebook image" />
                     <span className="h1 fw-bold mb-0">Fcoin</span>
                 </div>
 
                 <h5 className="fw-normal my-4 pb-3" style={{letterSpacing: '1px'}}>Connectez-vous à votre compte ou inscrivez-vous</h5>
 
-                <Button 
-                    style={{
-                        borderRadius: 35,
-                        backgroundColor: "#00853d",
-                        color:"white"
-                    }}
-                    fullWidth 
-                    variant="contained" 
-                    type="submit" 
-                    onClick={handleGoogleSignin()}
-                > 
-                    <img className="mx-2" src="https://cdn-icons-png.flaticon.com/512/2504/2504739.png" style={{width:20,backgroundColor:'white',borderRadius:50}} alt="Facebook image" />
-                    Se connecter avec google
-                </Button> 
+                <GoogleLogin
+                    clientId={'186741013778-bh3ph6mmpj4si62e0ejktopeqdqq0tfl.apps.googleusercontent.com' || ''}
+                    render={(renderProps) => (
+                        <Button
+                            onClick={renderProps.onClick}
+                            variant="contained"
+                            size="big"
+                            style={{
+                                width: '100%',
+                                borderRadius: 35,
+                                backgroundColor:"#1f80b3",
+                                color:'white',
+                                marginBottom: 4,
+                            }}
+                        >
+                            <img className="mx-2" src="https://cdn-icons-png.flaticon.com/512/2504/2504739.png" style={{width:20,backgroundColor:'white',borderRadius:50}} alt="Facebook image" />
+                                Se connecter avec google
+
+                        </Button>
+                    )}
+                    onSuccess={(response) =>
+                            handleResponseLogin(response, 'google')
+                    }
+                    onFailure={undefined}
+                    cookiePolicy={'single_host_origin'}
+                    />
+
 
                 <br/><br/>
 
@@ -181,10 +266,13 @@ function App() {
                             </form>
                     )}
                 </Formik> 
+
+
             </MDBCol>
         </MDBRow>
 
     </MDBContainer>
+    
   );
 }
 
